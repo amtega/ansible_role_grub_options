@@ -1,2 +1,36 @@
 ---
-# Role tasks
+# Role tasks for grub configuration
+
+- name: check grubby installation
+  package:
+    name: grubby
+    state: present
+
+- name: configuration tasks
+  become_user: root
+  become: yes
+  block:
+    - name: backup grub config file
+      shell: "cp {{ grub_config_file_v1 }} {{ grub_config_file_v1 }}.`date +%Y%m%d%H%M%S`"
+      when: >
+          ( ansible_os_family == "RedHat" or ansible_os_family == "CentOS") and
+          ansible_distribution_major_version <= 6
+      register: copy_file_result
+
+    - name: backup grub config file
+      shell: "cp {{ grub_config_file_v2 }} {{ grub_config_file_v2 }}.`date +%Y%m%d%H%M%S`"
+      when: >
+          ( ansible_os_family == "RedHat" or ansible_os_family == "CentOS") and
+          ansible_distribution_major_version > 7
+      register: copy_file_result
+
+    - debug:
+        var: copy_file_result
+
+    - name: add Grub requiered options
+      shell: /sbin/grubby --args="{{ item }}" --update-kernel=ALL
+      with_items: "{{ grub_options_to_be_present }}"
+
+    - name: remove Grub options
+      shell: /sbin/grubby --remove-args="{{ item }}" --update-kernel=ALL
+      with_items: "{{ grub_options_to_be_absent }}"

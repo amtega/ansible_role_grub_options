@@ -1,2 +1,21 @@
 ---
 # Role default lower priority variables
+# default options
+# options to be present on grub configuration
+grub_options_to_be_present:
+    - "net.ifnames=0"
+    - "biosdevname=0"
+    - "LANG=en_US.UTF-8"
+# options to be out of grub configuration
+grub_options_to_be_absent:
+  - "rhgb"
+  - "quiet"
+
+# Path to Grub 0.9x config file
+grub_config_file_v1: /boot/grub/grub.conf
+
+# Path to Grub2 config file
+grub_config_file_v2: /boot/grub2/grub.cfg
+
+# Path to Grub2 default file
+grub_config_file_default: /etc/default/grub
