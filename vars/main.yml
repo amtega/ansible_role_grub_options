@@ -1,2 +1,46 @@
 ---
 # Role variables
+# Path to Grub 0.9x config file
+grub_config_file_v1: /boot/grub/grub.conf
+
+# Path to Grub2 config file
+grub_config_file_v2: /boot/grub2/grub.cfg
+
+# Path to Grub2 default file
+grub_config_file_default: /etc/default/grub
+
+grub_packages:
+  fedora_25:
+    - grub2
+    - grub2-tools
+    - grubby
+
+  fedora_26:
+      - grub2
+      - grub2-tools
+      - grubby
+
+  fedora_27:
+      - grub2
+      - grub2-tools
+      - grubby
+
+  rhel_6:
+    - grub
+    - grub
+    - grubby
+
+  rhel_7:
+    - grub2
+    - grub2-tools
+    - grubby
+
+  centos_6:
+    - grub
+    - grub
+    - grubby
+
+  centos_7:
+    - grub2
+    - grub2-tools
+    - grubby

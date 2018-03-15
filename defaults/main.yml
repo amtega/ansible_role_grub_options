@@ -10,12 +10,3 @@ grub_options_to_be_present:
 grub_options_to_be_absent:
   - "rhgb"
   - "quiet"
-
-# Path to Grub 0.9x config file
-grub_config_file_v1: /boot/grub/grub.conf
-
-# Path to Grub2 config file
-grub_config_file_v2: /boot/grub2/grub.cfg
-
-# Path to Grub2 default file
-grub_config_file_default: /etc/default/grub

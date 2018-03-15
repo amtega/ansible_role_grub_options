@@ -1,10 +1,11 @@
 ---
 # Tasks for tesing role grub configuration
 
-- name: test Grub configuration role
-  hosts: 10.112.64.97
+- name: test grub configuration role
+  hosts: all
   become_method: sudo
   become_user: root
+  become: yes
   roles:
     - amtega.kernel_params
   vars:
@@ -18,7 +19,7 @@
 
   tasks:
       - name: read grub config file
-        become: yes
+        # become: yes
         shell: "cat {{ grub_config_file_v1 }}"
         when: >
           ansible_os_family == "RedHat" and
@@ -26,7 +27,7 @@
         register: read_grub_config_result
 
       - name: read grub config file
-        become: yes
+        #become: yes
         shell: "cat {{ grub_config_file_v2 }}"
         when: >
           ansible_os_family == "RedHat" and
@@ -42,5 +43,8 @@
       - name: verify options to be absent
         assert:
             that:
-              - read_grub_config_result.stdout.find( "{{ item }}" )==-1
+              - read_grub_config_result.stdout.find( "{{ item }}" ) ==-1
         with_items:  "{{ grub_options_to_be_absent }}"
+
+  tags:
+    - idempotence
