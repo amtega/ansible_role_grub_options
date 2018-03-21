@@ -1,0 +1,151 @@
+---
+# Tasks for tesing role kernel_parms
+
+- name: setup docker sandbox
+  hosts: localhost
+  roles:
+    - role: amtega.docker_presets
+    - role: amtega.docker_sandbox
+      docker_sandbox_state: started
+      docker_sandbox_idempotence_test: false
+
+# - name: prepare docker containers for tests
+#   hosts: docker_sandbox_containers
+#   tasks:
+#       - name: create test file grub.cfg
+#         block:
+#           - stat:
+#             path: "{{ grub_config_file_v1 }}"
+#             register: grub_config_file_v1_exists
+#           - stat:
+#             path: "{{ grub_config_file_v2 }}"
+#             register: grub_config_file_v2_exists
+#
+#       #- name: create grub.cfg if neccesary
+#           - blockinfile:
+#               path: "{{ grub_config_file_v1 }}"
+#               block: |
+#                   linux	/boot/vmlinuz-3.13.0-37-generic root=UUID=37e844bb-ff80-4ed8-b102-bb9d4678cef5 ro   quiet splash
+#               when: not grub_config_file_v1_exists.exists
+#
+#       # - name: create grub_config_file_v2
+#           - blockinfile:
+#               path: "{{ grub_config_file_v2 }}"
+#               block: |
+#                 linux	/boot/vmlinuz-3.13.0-37-generic root=UUID=37e844bb-ff80-4ed8-b102-bb9d4678cef5 ro   quiet splash
+#               when: not grub_config_file_v2_exists.exists
+
+- name: run idemmpotence test
+  hosts: localhost
+  roles:
+    - role: amtega.docker_sandbox
+      docker_sandbox_state: started
+
+- name: test role
+  hosts: docker_sandbox_containers
+  roles:
+    - amtega.kernel_params
+  vars:
+    grub_options_to_be_present:
+      - "net.ifnames=0"
+      - "biosdevname=0"
+
+    grub_options_to_be_absent:
+      - "rhgb"
+      - "quiet"
+    tags:
+      - idempotence
+
+#
+# - name: run idempotence test
+#   hosts: localhost
+#   roles:
+#     - role: amtega.docker_presets
+#     - role: amtega.docker_san      docker_sandbox_idempotence_test: falsedbox
+#       docker_sandbox_state: started
+#
+#
+# - name: test Grub configuration role
+#   hosts: docker_sandbox_containers
+#   roles:
+#     - amtega.kernel_params
+#   vars:
+#     grub_options_to_be_present:
+#       - "net.ifnames=0"
+#       - "biosdevname=0"
+#
+#     grub_options_to_be_absent:
+#       - "rhgb"
+#       - "quiet"
+#
+#   tasks:
+#       - name: create test file grub.cfg
+#         block:
+#           - stat:
+#             path: "{{ grub_config_file_v1 }}"
+#             register: grub_config_file_v1_exists
+#           - stat:
+#             path: "{{ grub_config_file_v2 }}"
+#             register: grub_config_file_v2_exists
+#
+#       #- name: create grub.cfg if neccesary
+#           - blockinfile:
+#               path: "{{ grub_config_file_v1 }}"
+#               block: |
+#                   linux	/boot/vmlinuz-3.13.0-37-generic root=UUID=37e844bb-ff80-4ed8-b102-bb9d4678cef5 ro   quiet splash
+#               when: not grub_config_file_v1_exists.exists
+#
+#       # - name: create grub_config_file_v2
+#           - blockinfile:
+#               path: "{{ grub_config_file_v2 }}"
+#               block: |
+#                 linux	/boot/vmlinuz-3.13.0-37-generic root=UUID=37e844bb-ff80-4ed8-b102-bb9d4678cef5 ro   quiet splash
+#               when: not grub_config_file_v2_exists.exists
+#         when: true
+#
+#       - name: idempotence test
+#         block:
+#       #  - name: install grub on docker images
+#           - package:
+#               name: grub
+#               state: present
+#         # - name: read grub config file
+#           - shell: "cat {{ grub_config_file_v1 }}"
+#             when: >
+#                 ansible_os_family == "RedHat" and
+#                 ansible_distribution_major_version <= 6
+#             register: read_grub_config_result
+#
+#       # - name: read grub config file
+#           - shell: "cat {{ grub_config_file_v2 }}"
+#             when : >
+#                 ansible_os_family == "RedHat" and
+#                 ansible_dis      docker_sandbox_idempotence_test: falsetribution_major_version > 6
+#             register: read_grub_config_result
+#
+#       #- name: verify options to be present at Grub config file
+#           - assert:
+#             that:
+#               - stdout | search("{{ item }}")
+#             with-items: "{{ grub_options_to_be_present }}"
+#             vars:
+#               stdout: "{{ read_grub_config_result.stdout }}"
+#
+#       #- name: verify options to be absent
+#           - assert:- name: prepare docker containers for tests
+  hosts: docker_sandbox_containers
+  tasks:
+#             that:
+#               - stdout | search("{{ item }}")
+#             with-items: "{{ grub_options_to_be_absent }}"
+#             vars:
+#               stdout: "{{ read_grub_config_result.stdout }}"
+#
+#         tags:
+#           - idempotence
+
+- name: cleanup docker docker sandbox
+  hosts: localhost
+  roles:
+    - role: amtega.docker_sandbox
+      docker_sandbox_state: absent
