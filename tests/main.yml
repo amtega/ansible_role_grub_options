@@ -7,7 +7,7 @@
   become_user: root
   become: yes
   roles:
-    - amtega.kernel_params
+    - amtega.grub_options
   vars:
     grub_options_to_be_present:
       - "net.ifnames=0"
