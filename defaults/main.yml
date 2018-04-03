@@ -1,12 +1,8 @@
 ---
 # Role default lower priority variables
-# default options
-# options to be present on grub configuration
-grub_options_to_be_present:
-    - "net.ifnames=0"
-    - "biosdevname=0"
-    - "LANG=en_US.UTF-8"
-# options to be out of grub configuration
-grub_options_to_be_absent:
-  - "rhgb"
-  - "quiet"
+
+# Options to be present in grub configuration
+grub_options_present: []
+
+# Options to be absnet in grub configuration
+grub_options_absent: []

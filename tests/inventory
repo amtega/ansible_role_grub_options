@@ -1,2 +1,1 @@
-#localhost ansible_connection=local
-10.112.64.97
+localhost ansible_connection=local

@@ -1,50 +1,100 @@
 ---
-# Tasks for tesing role grub configuration
+# Tasks for testing role
 
-- name: test grub configuration role
-  hosts: all
-  become_method: sudo
-  become_user: root
-  become: yes
+# To test this role with docker containers we need some preparation stuff in
+# the containers because they cannot use grub. The preparation tasks involve
+# the creation of fake grub config files.
+#
+# As consecuence of the previous preparation tasks we can't use the idempotence
+# testing feature of the docker_sandbox role and, therefore, we need to setup
+# idempotence testing "manually" calling directly the idempotence_tester role
+# and recreating the docker containers after.
+
+# Setup docker containers
+
+- name: setup docker containers
+  hosts: localhost
   roles:
-    - amtega.grub_options
-  vars:
-    grub_options_to_be_present:
-      - "net.ifnames=0"
-      - "biosdevname=0"
+    - role: amtega.docker_presets
+    - role: amtega.docker_sandbox
+      docker_sandbox_state: started
+      docker_sandbox_idempotence_test: false
+  tags:
+    - sandbox
 
-    grub_options_to_be_absent:
-      - "rhgb"
-      - "quiet"
+# Prepare docker containers creating fake grub config files
 
+- import_playbook: prepare.yml
+  tags:
+    - sandbox
+
+# Run idempotence test calling "manually" the idempotence_tester role
+
+- name: run idempotence test
+  hosts: localhost
+  roles:
+    - role: amtega.idempotence_tester
+      idempotence_tester_inventory: "{{ docker_sandbox_inventory }}"
+      idempotence_tester_group: docker_sandbox_containers
+
+# Regenerate docker containers after running idempotence test
+
+- name: regenerate docker containers
+  hosts: localhost
+  roles:
+    - role: amtega.docker_sandbox
+      docker_sandbox_state: recreated
+      docker_sandbox_idempotence_test: false
+
+# Prepare again regenerated docker containers with fake grub config files
+
+- import_playbook: prepare.yml
+  tags:
+    - sandbox
+
+# Run role tests
+
+- name: test grub_options role
+  hosts: docker_sandbox_containers
+  roles:
+    - role: amtega.grub_options
+      grub_options_present:
+        - "net.ifnames=0"
+        - "biosdevname=0"
+        - "LANG=en_US.UTF-8"
+      grub_options_absent:
+        - "rhgb"
+        - "quiet"
   tasks:
-      - name: read grub config file
-        # become: yes
-        shell: "cat {{ grub_config_file_v1 }}"
-        when: >
-          ansible_os_family == "RedHat" and
-          ansible_distribution_major_version <= 6
-        register: read_grub_config_result
+    - name: read grub config file
+      shell: "cat {{ config_file }}"
+      register: read_grub_config_result
+      changed_when: false
+      vars:
+        config_file: >-
+          {{ (ansible_os_family | lower == "redhat"
+              and ansible_distribution_major_version is version(6, "<="))
+             | ternary(grub_options_config_file_v1, grub_options_config_file_v2)
+          }}
 
-      - name: read grub config file
-        #become: yes
-        shell: "cat {{ grub_config_file_v2 }}"
-        when: >
-          ansible_os_family == "RedHat" and
-          ansible_distribution_major_version > 6
-        register: read_grub_config_result
+    - name: verify options that must be present in config file
+      assert:
+        that: read_grub_config_result.stdout is find("{{ item }}")
+      loop: "{{ grub_options_present }}"
 
-      - name: verify options to be present at Grub config file
-        assert:
-          that:
-            - read_grub_config_result.stdout.find( "{{ item }}" ) != -1
-        with_items: "{{ grub_options_to_be_present }}"
-
-      - name: verify options to be absent
-        assert:
-            that:
-              - read_grub_config_result.stdout.find( "{{ item }}" ) ==-1
-        with_items:  "{{ grub_options_to_be_absent }}"
-
+    - name: verify options that must be absent in config file
+      assert:
+        that: not read_grub_config_result.stdout is find( "{{ item }}")
+      with_items:  "{{ grub_options_absent }}"
   tags:
     - idempotence
+
+# Cleanup sandbox environment
+
+- name: cleanup docker docker sandbox
+  hosts: localhost
+  roles:
+  - role: amtega.docker_sandbox
+    docker_sandbox_state: absent
+  tags:
+    - sandbox

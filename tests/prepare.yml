@@ -1,0 +1,48 @@
+---
+# Prepare test containers before testing. This is needed because docker
+# containers don't have grub config as the they don't boot.
+
+- name: prepare docker containers for tests
+  hosts: docker_sandbox_containers
+  vars:
+    grub_options_config_file_v1_content: |
+      title Test 1
+      root(hd0,0)
+      kernel /boot/vmlinuz-test1 root=/dev/sda2 quiet rhgb
+
+      title Test 2
+      root(hd0,0)
+      kernel /boot/vmlinuz-test2 root=/dev/sda2 quiet rhgb
+
+    grub_options_config_file_v2_content: |
+      menuentry "Test 1" {
+      	linux /boot/vmlinuz-test1 root=/dev/sda2 quiet rhgb
+      }
+
+      menuentry "Test 2" {
+      	linux /boot/vmlinuz-test2 root=/dev/sda2 quiet rhgb
+      }
+
+  tasks:
+    - block:
+        - name: create grub config dirs
+          file:
+            path: "{{ grub_config_file | dirname }}"
+            state: directory
+
+        - name: create grub config files
+          copy:
+            dest: "{{ grub_config_file }}"
+            content: "{{ grub_config_file_content }}"
+            force: yes
+          vars:
+            grub_config_file_content: >-
+              {{ (ansible_distribution | lower in ["centos", "rhel"]
+                  and ansible_distribution_major_version is version("6", "<="))
+                 | ternary(grub_options_config_file_v1_content,
+                           grub_options_config_file_v2_content) }}
+      vars:
+        grub_config_file: >-
+          {{ (ansible_distribution | lower in ["centos", "rhel"]
+           and ansible_distribution_major_version is version("6", "<="))
+          | ternary("/etc/grub.conf", "/boot/grub2/grub.cfg") }}
