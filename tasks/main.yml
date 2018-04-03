@@ -1,39 +1,58 @@
 ---
 # Role tasks for grub configuration
 
-- debug:
-    msg: "Distribucion: {{ ansible_distribution }}"
+- block:
+    - name: setup dependency packages
+      package:
+        name: "{{ item }}"
+        state: present
+      with_items: >-
+        {{ grub_options_dependency_packages[distro_packages_key] }}
+      vars:
+        distro_packages_key: >-
+          {{ ansible_distribution
+             | lower + "_" + ansible_distribution_major_version }}
 
-- debug:
-    msg: "Major version: {{ ansible_distribution_major_version }}"
+    - name: read grub config file
+      shell: "cat {{ grub_config_file }}"
+      changed_when: false
+      register: grub_options_read_config_file_result
 
-- name: install necessary packages
-  package:
-    name: "{{ item }}"
-    state: present
-  with_items: >-
-      {{ grub_packages[distro_packages_key] }}
+    - name: add grub options
+      shell: /sbin/grubby --args="{{ item }}" --update-kernel=ALL
+      register: grub_options_add_result
+      when: >-
+        grub_options_read_config_file_result.stdout_lines
+        | select("search", grup_config_options_prefix + " .*")
+        | select("search", "^((?!" + item + ").)*$")
+        | list
+        | length > 0
+      with_items: "{{ grub_options_present }}"
+
+    - name: remove grub options
+      shell: /sbin/grubby --remove-args="{{ item }}" --update-kernel=ALL
+      register: grub_options_remove_result
+      when: >-
+        grub_options_read_config_file_result.stdout_lines
+        | select("search", grup_config_options_prefix + " .*")
+        | select("search", item)
+        | list
+        | length > 0
+      with_items: "{{ grub_options_absent }}"
+
+    - name: save old version of grub config file
+      copy:
+        dest: "{{ grub_config_file + '.' + '%Y%m%d%H%M%S' | strftime }}"
+        content: "{{ grub_options_read_config_file_result.stdout }}"
+      when: >-
+        grub_options_add_result is changed
+        or grub_options_remove_result is changed
   vars:
-    distro_packages_key: >-
-      {{ ansible_distribution | lower + "_" + ansible_distribution_major_version }}
+    grub_config_file: >-
+      {{ (ansible_distribution | lower in ["centos", "rhel"]
+          and ansible_distribution_major_version is version("6", "<="))
+         | ternary(grub_options_config_file_v1, grub_options_config_file_v2) }}
 
-- name: backup grup config file
-  become: true
-  shell: "cp {{ grub_config_file }} {{ grub_config_file }}.`date +%Y%m%d%H%M%S`"
-  vars:
-      grub_config_file: >-
-        {{ (ansible_distribution | lower in ["rhel", "centos"] and ansible_distribution_major_version <= 6)
-           | ternary(grub_config_file_v1, grub_config_file_v2) }}
-
-- debug:
-      var: copy_file_result
-
-- name: add Grub requiered options
-  become: true
-  shell: /sbin/grubby --args="{{ item }}" --update-kernel=ALL
-  with_items: "{{ grub_options_to_be_present }}"
-
-- name: remove Grub options
-  become: true
-  shell: /sbin/grubby --remove-args="{{ item }}" --update-kernel=ALL
-  with_items: "{{ grub_options_to_be_absent }}"
+    grup_config_options_prefix: >-
+      {{ (grub_config_file == grub_options_config_file_v1)
+         | ternary("kernel", "linux") }}
