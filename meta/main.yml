@@ -1,4 +1,5 @@
 galaxy_info:
+  role_name: grub_options
   author: Carlos Chedas Fernández
   description: Setup grub bootloader options
   company: AMTEGA - Xunta de Galicia
