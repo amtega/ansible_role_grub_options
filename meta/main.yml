@@ -1,22 +1,51 @@
 galaxy_info:
   role_name: grub_options
-  author: Carlos Chedas Fernández
+  author: Carlos Chedas Fernández / Juan Antonio Valiño García
   description: Setup grub bootloader options
   company: AMTEGA - Xunta de Galicia
   license: GPLv3 or EUPL
-  min_ansible_version: 2.5
+  min_ansible_version: 2.7
   platforms:
-  - name: Fedora
-    versions:
-      - 26
-      - 27
-  - name: EL
-    versions:
-      - 6
-      - 7
+    - name: EL
+      versions:
+        - 6
+        - 7
+    - name: Fedora
+      versions:
+        - 27
+        - 28
   galaxy_tags:
     - system
     - bootloader
     - grub
 
-dependencies: []
+dependencies:
+  - role: amtega.check_platform
+    check_platform_distributions:
+      centos: 6
+      fedora: 27
+      rhel: 6
+
+  - role: amtega.packages
+    packages_os:
+      centos:
+        6:
+          "grub": present
+          "grubby": present
+        7:
+          "grub2": present
+          "grub2-tools": present
+          "grubby": present
+      fedora:
+        all:
+          "grub2": present
+          "grub2-tools": present
+          "grubby": present
+      rhel:
+        all:
+          "grub": present
+          "grubby": present
+        7:
+          "grub2": present
+          "grub2-tools": present
+          "grubby": present
