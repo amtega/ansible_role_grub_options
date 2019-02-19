@@ -2,7 +2,9 @@
 # Role default lower priority variables
 
 # Options to be present in grub configuration
+
 grub_options_present: []
 
 # Options to be absnet in grub configuration
+
 grub_options_absent: []

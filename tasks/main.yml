@@ -1,25 +1,14 @@
 ---
-# Role tasks for grub configuration
+# Role tasks
 
 - block:
-    - name: setup dependency packages
-      package:
-        name: "{{ item }}"
-        state: present
-      with_items: >-
-        {{ grub_options_dependency_packages[distro_packages_key] }}
-      vars:
-        distro_packages_key: >-
-          {{ ansible_distribution
-             | lower + "_" + ansible_distribution_major_version }}
-
     - name: read grub config file
-      shell: "cat {{ grub_config_file }}"
+      command: "cat {{ grub_config_file }}"
       changed_when: false
       register: grub_options_read_config_file_result
 
     - name: add grub options
-      shell: /sbin/grubby --args="{{ item }}" --update-kernel=ALL
+      command: /sbin/grubby --args="{{ item }}" --update-kernel=ALL
       register: grub_options_add_result
       when: >-
         grub_options_read_config_file_result.stdout_lines
@@ -30,7 +19,7 @@
       with_items: "{{ grub_options_present }}"
 
     - name: remove grub options
-      shell: /sbin/grubby --remove-args="{{ item }}" --update-kernel=ALL
+      command: /sbin/grubby --remove-args="{{ item }}" --update-kernel=ALL
       register: grub_options_remove_result
       when: >-
         grub_options_read_config_file_result.stdout_lines
@@ -49,10 +38,12 @@
         or grub_options_remove_result is changed
   vars:
     grub_config_file: >-
-      {{ (ansible_distribution | lower in ["centos", "rhel"]
-          and ansible_distribution_major_version is version("6", "<="))
+      {{ (ansible_facts.distribution | lower in ["centos", "rhel"]
+          and ansible_facts.distribution_major_version is version("6", "<="))
          | ternary(grub_options_config_file_v1, grub_options_config_file_v2) }}
 
     grup_config_options_prefix: >-
       {{ (grub_config_file == grub_options_config_file_v1)
          | ternary("kernel", "linux") }}
+  tags:
+    - role::grup_options
