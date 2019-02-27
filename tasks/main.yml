@@ -8,26 +8,50 @@
       register: grub_options_read_config_file_result
 
     - name: add grub options
-      command: /sbin/grubby --args="{{ item }}" --update-kernel=ALL
+      shell: >-
+        /sbin/grubby
+        --args="{{ grub_options_item }}"
+        --update-kernel=ALL
+        --config-file={{ grub_config_file }} &&
+        cat {{ grub_config_file }}
+      args:
+        warn: no
       register: grub_options_add_result
+      changed_when: >-
+        grub_options_read_config_file_result.stdout
+        != grub_options_add_result.stdout
       when: >-
         grub_options_read_config_file_result.stdout_lines
         | select("search", grup_config_options_prefix + " .*")
-        | select("search", "^((?!" + item + ").)*$")
+        | select("search", "^((?!" + grub_options_item + ").)*$")
         | list
         | length > 0
-      with_items: "{{ grub_options_present }}"
+      loop: "{{ grub_options_present }}"
+      loop_control:
+        loop_var: grub_options_item
 
     - name: remove grub options
-      command: /sbin/grubby --remove-args="{{ item }}" --update-kernel=ALL
+      shell: >-
+        /sbin/grubby
+        --remove-args="{{ grub_options_item }}"
+        --update-kernel=ALL
+        --config-file={{ grub_config_file }} &&
+        cat {{ grub_config_file }}
+      args:
+        warn: no
+      changed_when: >-
+        grub_options_read_config_file_result.stdout
+        != grub_options_remove_result.stdout
       register: grub_options_remove_result
       when: >-
         grub_options_read_config_file_result.stdout_lines
         | select("search", grup_config_options_prefix + " .*")
-        | select("search", item)
+        | select("search", grub_options_item)
         | list
         | length > 0
-      with_items: "{{ grub_options_absent }}"
+      loop: "{{ grub_options_absent }}"
+      loop_control:
+        loop_var: grub_options_item
 
     - name: save old version of grub config file
       copy:
