@@ -37,12 +37,12 @@
             force: yes
           vars:
             grub_config_file_content: >-
-              {{ (ansible_distribution | lower in ["centos", "rhel"]
+              {{ (ansible_distribution | lower in ["centos", "redhat"]
                   and ansible_distribution_major_version is version("6", "<="))
                  | ternary(grub_options_config_file_v1_content,
                            grub_options_config_file_v2_content) }}
       vars:
         grub_config_file: >-
-          {{ (ansible_distribution | lower in ["centos", "rhel"]
+          {{ (ansible_distribution | lower in ["centos", "redhat"]
            and ansible_distribution_major_version is version("6", "<="))
           | ternary("/etc/grub.conf", "/boot/grub2/grub.cfg") }}

@@ -4,7 +4,7 @@ galaxy_info:
   description: Setup grub bootloader options
   company: AMTEGA - Xunta de Galicia
   license: GPLv3 or EUPL
-  min_ansible_version: 2.7
+  min_ansible_version: 2.8
   platforms:
     - name: EL
       versions:
@@ -12,8 +12,8 @@ galaxy_info:
         - 7
     - name: Fedora
       versions:
-        - 27
-        - 28
+        - 29
+        - 30
   galaxy_tags:
     - system
     - bootloader
@@ -21,31 +21,9 @@ galaxy_info:
 
 dependencies:
   - role: amtega.check_platform
-    check_platform_distributions:
-      centos: 6
-      fedora: 27
-      rhel: 6
+    tags:
+      - never
 
   - role: amtega.packages
-    packages_os:
-      centos:
-        6:
-          "grub": present
-          "grubby": present
-        7:
-          "grub2": present
-          "grub2-tools": present
-          "grubby": present
-      fedora:
-        all:
-          "grub2": present
-          "grub2-tools": present
-          "grubby": present
-      rhel:
-        all:
-          "grub": present
-          "grubby": present
-        7:
-          "grub2": present
-          "grub2-tools": present
-          "grubby": present
+    tags:
+      - never
