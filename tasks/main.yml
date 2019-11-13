@@ -62,7 +62,7 @@
         or grub_options_remove_result is changed
   vars:
     grub_config_file: >-
-      {{ (ansible_facts.distribution | lower in ["centos", "rhel"]
+      {{ (ansible_facts.distribution | lower in ["centos", "redhat"]
           and ansible_facts.distribution_major_version is version("6", "<="))
          | ternary(grub_options_config_file_v1, grub_options_config_file_v2) }}
 

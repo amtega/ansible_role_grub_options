@@ -24,7 +24,7 @@ dependencies:
     check_platform_distributions:
       centos: 6
       fedora: 27
-      rhel: 6
+      redhat: 6
 
   - role: amtega.packages
     packages_os:
@@ -41,7 +41,7 @@ dependencies:
           "grub2": present
           "grub2-tools": present
           "grubby": present
-      rhel:
+      redhat:
         all:
           "grub": present
           "grubby": present
