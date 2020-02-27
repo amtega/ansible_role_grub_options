@@ -68,8 +68,7 @@
         != grub_options_add_result.stdout
       when: >-
         grub_options_read_config_file_result.stdout_lines
-        | select("search", grup_config_options_pref
-# Role tasksix + " .*")
+        | select("search", grup_config_options_prefix + " .*")
         | select("search", "^((?!" + grub_options_item + ").)*$")
         | list
         | length > 0
