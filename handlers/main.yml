@@ -1,0 +1,7 @@
+---
+# Role handlers
+
+- name: grub_options apply grub2 changes
+  command: "grub2-mkconfig -o {{ grub_options_config_file_v2 }}"
+  args:
+    warn: no

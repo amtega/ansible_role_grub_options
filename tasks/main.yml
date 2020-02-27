@@ -41,6 +41,18 @@
       changed_when: false
       register: grub_options_read_config_file_result
 
+    - name: set grub v1 password
+      include_tasks: grubv1_password.yml
+      when:
+        - ansible_facts.distribution_major_version is version("6", "<=")
+        - grub_options_set_password
+
+    - name: set grub v2 password
+      include_tasks: grubv2_password.yml
+      when:
+        - ansible_facts.distribution_major_version is version("6", ">")
+        - grub_options_set_password
+
     - name: add grub options
       shell: >-
         /sbin/grubby
@@ -56,7 +68,8 @@
         != grub_options_add_result.stdout
       when: >-
         grub_options_read_config_file_result.stdout_lines
-        | select("search", grup_config_options_prefix + " .*")
+        | select("search", grup_config_options_pref
+# Role tasksix + " .*")
         | select("search", "^((?!" + grub_options_item + ").)*$")
         | list
         | length > 0
