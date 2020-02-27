@@ -5,6 +5,14 @@
 
 grub_options_config_file_v1: /etc/grub.conf
 
+# Path to Grub 0.9x password config file
+
+grub_options_password_config_file_v1: /etc/grub.conf
+
 # Path to Grub2 config file
 
 grub_options_config_file_v2: /boot/grub2/grub.cfg
+
+# Path to Grub2 password config file
+
+grub_options_password_config_file_v2: /etc/grub.d/01_users
