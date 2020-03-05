@@ -1,67 +1,55 @@
 ---
 # Tasks for testing role
 
-# To test this role with docker containers we need some preparation stuff in
-# the containers because they cannot use grub. The preparation tasks involve
+# To test this role with vagrant vms we need some preparation stuff in
+# the vms because they cannot use grub. The preparation tasks involve
 # the creation of fake grub config files.
 #
 # As consecuence of the previous preparation tasks we can't use the idempotence
-# testing feature of the docker_sandbox role and, therefore, we need to setup
+# testing feature of the vagrant_sandbox role and, therefore, we need to setup
 # idempotence testing "manually" calling directly the idempotence_tester role
-# and recreating the docker containers after.
+# and recreating the vagrant vms after.
 
-# Setup docker containers
+# Setup vagrant vms
 
-- name: run idempotence test
+- name: Run idempotence test
   hosts: localhost
   roles:
-    - role: amtega.docker_presets
-      docker_presets_images_json_query: >-
+    - role: amtega.vagrant_presets
+      vagrant_presets_images_json_query: >-
         [? starts_with(name, `centos-6`)
            || starts_with(name, `centos-7`)
            || starts_with(name, `fedora-29`)
            || starts_with(name, `fedora-30`) ]
 
-    - role: amtega.docker_sandbox
-      docker_sandbox_state: started
-      docker_sandbox_idempotence_test: false
-  tags:
-    - sandbox
-
-# Prepare docker containers creating fake grub config files
-
-- import_playbook: prepare.yml
+    - role: amtega.vagrant_sandbox
+      vagrant_sandbox_state: started
+      vagrant_sandbox_idempotence_test: false
   tags:
     - sandbox
 
 # Run idempotence test calling "manually" the idempotence_tester role
 
-- name: run idempotence test
+- name: Run idempotence test
   hosts: localhost
   roles:
     - role: amtega.idempotence_tester
-      idempotence_tester_inventory: "{{ docker_sandbox_inventory }}"
-      idempotence_tester_group: docker_sandbox_containers
+      idempotence_tester_inventory: "{{ vagrant_sandbox_inventory }}"
+      idempotence_tester_group: vagrant_sandbox_vms
 
-# Regenerate docker containers after running idempotence test
+# Regenerate vagrant vms after running idempotence test
 
-- name: regenerate docker containers
+- name: Regenerate vagrant vms
   hosts: localhost
   roles:
-    - role: amtega.docker_sandbox
-      docker_sandbox_state: recreated
-      docker_sandbox_idempotence_test: false
-
-# Prepare again regenerated docker containers with fake grub config files
-
-- import_playbook: prepare.yml
-  tags:
-    - sandbox
+    - role: amtega.vagrant_sandbox
+      vagrant_sandbox_state: recreated
+      vagrant_sandbox_idempotence_test: false
 
 # Run role tests
 
-- name: test grub_options role
-  hosts: docker_sandbox_containers
+- name: Test grub_options role
+  hosts: vagrant_sandbox_vms
   roles:
     - role: amtega.grub_options
       grub_options_present:
@@ -71,8 +59,9 @@
       grub_options_absent:
         - "rhgb"
         - "quiet"
+      grub_options_set_password: yes
   tasks:
-    - name: read grub config file
+    - name: Read grub config file
       shell: "cat {{ config_file }}"
       register: read_grub_config_result
       changed_when: false
@@ -80,15 +69,15 @@
         config_file: >-
           {{ (ansible_os_family | lower == "redhat"
               and ansible_distribution_major_version is version(6, "<="))
-             | ternary(grub_options_config_file_v1, grub_options_config_file_v2)
-          }}
+             | ternary(grub_options_config_file_v1,
+                       grub_options_config_file_v2) }}
 
-    - name: verify options that must be present in config file
+    - name: Verify options that must be present in config file
       assert:
         that: read_grub_config_result.stdout is find("{{ item }}")
       loop: "{{ grub_options_present }}"
 
-    - name: verify options that must be absent in config file
+    - name: Verify options that must be absent in config file
       assert:
         that: not read_grub_config_result.stdout is find( "{{ item }}")
       with_items:  "{{ grub_options_absent }}"
@@ -97,11 +86,11 @@
 
 # Cleanup sandbox environment
 
-- name: cleanup docker docker sandbox
+- name: Cleanup vagrant vagrant sandbox
   hosts: localhost
   roles:
-  - role: amtega.docker_sandbox
-    docker_sandbox_state: absent
+  - role: amtega.vagrant_sandbox
+    vagrant_sandbox_state: absent
   tags:
     - cleanup
     - sandbox

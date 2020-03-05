@@ -1,59 +1,25 @@
 ---
 # Role tasks
 
-- include_role:
-    name: amtega.check_platform
-  vars:
-    check_platform_distributions:
-      centos: 6
-      fedora: 27
-      redhat: 6
-
-- include_role:
-    name: amtega.packages
-  vars:
-    packages_os:
-      centos:
-        6:
-          "grub": present
-          "grubby": present
-        7:
-          "grub2": present
-          "grub2-tools": present
-          "grubby": present
-      fedora:
-        all:
-          "grub2": present
-          "grub2-tools": present
-          "grubby": present
-      redhat:
-        all:
-          "grub": present
-          "grubby": present
-        7:
-          "grub2": present
-          "grub2-tools": present
-          "grubby": present
-
 - block:
-    - name: read grub config file
+    - name: Read grub config file
       command: "cat {{ grub_config_file }}"
       changed_when: false
       register: grub_options_read_config_file_result
 
-    - name: set grub v1 password
-      include_tasks: grubv1_password.yml
+    - name: Setup grub v1 password
+      include_tasks: grub_v1_password.yml
       when:
         - ansible_facts.distribution_major_version is version("6", "<=")
         - grub_options_set_password
 
-    - name: set grub v2 password
-      include_tasks: grubv2_password.yml
+    - name: Setup grub v2 password
+      include_tasks: grub_v2_password.yml
       when:
         - ansible_facts.distribution_major_version is version("6", ">")
         - grub_options_set_password
 
-    - name: add grub options
+    - name: Add grub options
       shell: >-
         /sbin/grubby
         --args="{{ grub_options_item }}"
@@ -76,7 +42,7 @@
       loop_control:
         loop_var: grub_options_item
 
-    - name: remove grub options
+    - name: Remove grub options
       shell: >-
         /sbin/grubby
         --remove-args="{{ grub_options_item }}"
@@ -99,7 +65,7 @@
       loop_control:
         loop_var: grub_options_item
 
-    - name: save old version of grub config file
+    - name: Save old version of grub config file
       copy:
         dest: "{{ grub_config_file + '.' + '%Y%m%d%H%M%S' | strftime }}"
         content: "{{ grub_options_read_config_file_result.stdout }}"
