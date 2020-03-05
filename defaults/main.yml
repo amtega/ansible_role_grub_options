@@ -8,3 +8,15 @@ grub_options_present: []
 # Options to be absnet in grub configuration
 
 grub_options_absent: []
+
+# Indicate grub password is required
+
+grub_options_set_password: false
+
+# System information to provides grub password
+
+grub_options_user: root
+
+# Boolean to force password change
+
+grub_options_password_forced: false
