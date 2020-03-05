@@ -1,4 +1,5 @@
 #!/bin/sh -e
+{{ ansible_managed | comment }}
 
 cat << "EOF"
 set superusers="{{ grub_options_user }}"

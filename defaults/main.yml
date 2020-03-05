@@ -9,14 +9,18 @@ grub_options_present: []
 
 grub_options_absent: []
 
-# Indicate grub password is required
+# Set grub password
 
-grub_options_set_password: false
-
-# System information to provides grub password
-
-grub_options_user: root
+grub_options_set_password: no
 
 # Boolean to force password change
 
-grub_options_password_forced: false
+grub_options_set_password_force: no
+
+# User for grub password
+
+grub_options_user: root
+
+# Grub password
+
+grup_options_password: changeme

@@ -12,7 +12,7 @@
 
 # Setup docker containers
 
-- name: run idempotence test
+- name: Run idempotence test
   hosts: localhost
   roles:
     - role: amtega.docker_presets
@@ -36,7 +36,7 @@
 
 # Run idempotence test calling "manually" the idempotence_tester role
 
-- name: run idempotence test
+- name: Run idempotence test
   hosts: localhost
   roles:
     - role: amtega.idempotence_tester
@@ -45,7 +45,7 @@
 
 # Regenerate docker containers after running idempotence test
 
-- name: regenerate docker containers
+- name: Regenerate docker containers
   hosts: localhost
   roles:
     - role: amtega.docker_sandbox
@@ -60,7 +60,7 @@
 
 # Run role tests
 
-- name: test grub_options role
+- name: Test grub_options role
   hosts: docker_sandbox_containers
   roles:
     - role: amtega.grub_options
@@ -71,8 +71,9 @@
       grub_options_absent:
         - "rhgb"
         - "quiet"
+      grub_options_set_password: yes
   tasks:
-    - name: read grub config file
+    - name: Read grub config file
       shell: "cat {{ config_file }}"
       register: read_grub_config_result
       changed_when: false
@@ -83,12 +84,12 @@
              | ternary(grub_options_config_file_v1, grub_options_config_file_v2)
           }}
 
-    - name: verify options that must be present in config file
+    - name: Verify options that must be present in config file
       assert:
         that: read_grub_config_result.stdout is find("{{ item }}")
       loop: "{{ grub_options_present }}"
 
-    - name: verify options that must be absent in config file
+    - name: Verify options that must be absent in config file
       assert:
         that: not read_grub_config_result.stdout is find( "{{ item }}")
       with_items:  "{{ grub_options_absent }}"
@@ -97,7 +98,7 @@
 
 # Cleanup sandbox environment
 
-- name: cleanup docker docker sandbox
+- name: Cleanup docker docker sandbox
   hosts: localhost
   roles:
   - role: amtega.docker_sandbox

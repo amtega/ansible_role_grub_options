@@ -2,7 +2,7 @@
 # Prepare test containers before testing. This is needed because docker
 # containers don't have grub config as the they don't boot.
 
-- name: prepare docker containers for tests
+- name: Prepare docker containers for tests
   hosts: docker_sandbox_containers
   vars:
     grub_options_config_file_v1_content: |
@@ -25,12 +25,12 @@
 
   tasks:
     - block:
-        - name: create grub config dirs
+        - name: Create grub config dirs
           file:
             path: "{{ grub_config_file | dirname }}"
             state: directory
 
-        - name: create grub config files
+        - name: Create grub config files
           copy:
             dest: "{{ grub_config_file }}"
             content: "{{ grub_config_file_content }}"
