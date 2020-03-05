@@ -3,6 +3,7 @@
 
 - name: Apply grub2 changes
   command: "/usr/sbin/grub2-mkconfig -o {{ grub_options_config_file_v2 }}"
+  when:
   args:
     warn: no
   listen: generate grub2 config
