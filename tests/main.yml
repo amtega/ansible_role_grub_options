@@ -12,7 +12,7 @@
 
 # Setup vagrant vms
 
-- name: Run idempotence test
+- name: Setup testing sandbox
   hosts: localhost
   roles:
     - role: amtega.vagrant_presets
@@ -30,7 +30,7 @@
 
 # Run idempotence test calling "manually" the idempotence_tester role
 
-- name: Run idempotence test
+- name: Setup testing sandbox
   hosts: localhost
   roles:
     - role: amtega.idempotence_tester
