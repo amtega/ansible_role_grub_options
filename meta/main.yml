@@ -46,7 +46,7 @@ dependencies:
             "grub2-tools": present
             "grubby": present
         redhat:
-          all:
+          6:
             "grub": present
             "grubby": present
           7:
