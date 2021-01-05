@@ -47,6 +47,7 @@
         cat {{ grub_options_system_config_file }}
       args:
         warn: no
+      when: grub_options_present | length > 0
       register: grub_options_add_result
       changed_when: >-
         grub_options_read_system_config_file_result.stdout | trim
@@ -62,6 +63,7 @@
         cat {{ grub_options_system_config_file }}
       args:
         warn: no
+      when: grub_options_absent | length > 0
       changed_when: >-
         grub_options_read_system_config_file_result.stdout | trim
         != grub_options_remove_result.stdout | trim
