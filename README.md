@@ -1,4 +1,4 @@
-# role_name
+# Ansible grub_options role
 
 This is an [Ansible](http://www.ansible.com) role to setup grup bootloader options.
 
