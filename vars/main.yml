@@ -1,18 +1,22 @@
 ---
 # Role variables
 
-# Path to Grub 0.9x config file
+# Path to config file
 
-grub_options_config_file_v1: /etc/grub.conf
+grub_options_config_file_bios: /boot/grub2/grub.cfg
 
-# Path to Grub 0.9x password config file
+grub_options_config_file_efi: >-
+  /boot/efi/EFI/{{ ansible_facts.distribution | lower }}/grub.cfg
 
-grub_options_password_config_file_v1: /etc/grub.conf
+grub_options_config_file: >-
+  {{ (grub_options_check_efi.stat.exists)
+     | ternary(grub_options_config_file_efi,
+               grub_options_config_file_bios) }}
 
-# Path to Grub2 config file
+# Path to grub system wide default file
 
-grub_options_config_file_v2: /boot/grub2/grub.cfg
+grub_options_system_config_file: /etc/default/grub
 
 # Path to Grub2 password config file
 
-grub_options_password_config_file_v2: /etc/grub.d/01_users
+grub_options_password_config_file: /etc/grub.d/01_users

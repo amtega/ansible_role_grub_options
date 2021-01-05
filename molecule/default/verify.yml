@@ -1,0 +1,32 @@
+---
+
+- name: Verify
+  hosts: molecule_hosts
+  gather_facts: no
+  become: yes
+  tasks:
+    - name: Read grub config file
+      command: cat /boot/grub2/grub.cfg
+      changed_when: no
+      register: read_grub_config_result
+
+    - name: Read grub system config file
+      command: cat /etc/default/grub
+      changed_when: no
+      register: read_grub_system_config_result
+
+    - name: Verify options in config files
+      assert:
+        that:
+          - >-
+            read_grub_config_result.stdout
+            is search(grub_options_present | join(" "))
+          - >-
+            read_grub_system_config_result.stdout
+            is search(grub_options_present | join(" "))
+          - >-
+            not read_grub_config_result.stdout
+            is search(grub_options_absent | join(" "))
+          - >-
+            not read_grub_system_config_result.stdout
+            is search(grub_options_absent | join(" "))

@@ -1,0 +1,59 @@
+---
+
+dependency:
+  name: galaxy
+driver:
+  name: vagrant
+  provider:
+    name: virtualbox
+lint: "${MOLECULE_SCENARIO_DIRECTORY}/linters.sh"
+platforms:
+  - name: "centos7-${INSTANCE_UUID:-1}"
+    box: centos/7
+    memory: 1024
+    groups:
+      - molecule_hosts
+      - molecule_hosts_centos
+      - molecule_hosts_centos_7
+  - name: "centos8-${INSTANCE_UUID:-1}"
+    box: centos/8
+    instance_raw_config_args:
+      - vm.box_download_insecure = true
+    memory: 1024
+    groups:
+      - molecule_hosts
+      - molecule_hosts_centos
+      - molecule_hosts_centos_8
+  - name: "fedora32-${INSTANCE_UUID:-1}"
+    box: fedora/32-cloud-base
+    memory: 1024
+    groups:
+      - molecule_hosts
+      - molecule_hosts_fedora
+      - molecule_hosts_fedora_32
+  - name: "fedora33-${INSTANCE_UUID:-1}"
+    box: fedora/33-cloud-base
+    memory: 1024
+    groups:
+      - molecule_hosts
+      - molecule_hosts_fedora
+      - molecule_hosts_fedora_33
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      callback_whitelist: profile_tasks
+      action_plugins: $PWD/action_plugins
+  inventory:
+    hosts:
+      molecule_hosts:
+        vars:
+          grub_options_present:
+            - "net.ifnames=0"
+            - "biosdevname=0"
+          grub_options_absent:
+            - "rhgb"
+            - "quiet"
+          grub_options_set_password: yes
+verifier:
+  name: ansible

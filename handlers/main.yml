@@ -2,7 +2,7 @@
 # Role handlers
 
 - name: Apply grub2 changes
-  command: "/usr/sbin/grub2-mkconfig -o {{ grub_options_config_file_v2 }}"
+  command: "/usr/sbin/grub2-mkconfig -o {{ grub_options_config_file }}"
   when:
   args:
     warn: no
