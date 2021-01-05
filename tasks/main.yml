@@ -2,84 +2,71 @@
 # Role tasks
 
 - block:
-    - name: Read grub config file
-      command: "cat {{ grub_config_file }}"
-      changed_when: false
-      register: grub_options_read_config_file_result
+    - name: Check EFI boot
+      stat:
+        path: /sys/firmware/efi
+      register: grub_options_check_efi
 
-    - name: Setup grub v1 password
-      include_tasks: grub_v1_password.yml
-      when:
-        - ansible_facts.distribution_major_version is version("6", "<=")
-        - grub_options_set_password
+    - name: Read grub system config file
+      command: cat {{ grub_options_system_config_file }}
+      changed_when: no
+      register: grub_options_read_system_config_file_result
 
-    - name: Setup grub v2 password
-      include_tasks: grub_v2_password.yml
-      when:
-        - ansible_facts.distribution_major_version is version("6", ">")
-        - grub_options_set_password
+    - name: Check if password is already configured
+      command: "cat {{ grub_options_password_config_file }}"
+      changed_when: no
+      register: grub_options_check_password_result
+
+    - block:
+        - name: Generate password
+          expect:
+            command: "grub2-mkpasswd-pbkdf2"
+            responses:
+              ":": "{{ grup_options_password }}"
+          register: grub2_password_generate_result
+
+        - name: Setup config file for password
+          template:
+            src: users.j2
+            dest: "{{ grub_options_password_config_file }}"
+          notify: generate grub2 config
+          vars:
+            grub_options_password: >-
+              {{ grub2_password_generate_result.stdout.split(' ') | last }}
+      when: >-
+        grub_options_check_password_result.stdout
+        is not search("grub.pbkdf2.sha512")
+        or grub_options_set_password_force | bool
 
     - name: Add grub options
       shell: >-
         /sbin/grubby
-        --args="{{ grub_options_item }}"
+        --args="{{ grub_options_present | join(' ') }}"
         --update-kernel=ALL
-        --config-file={{ grub_config_file }} &&
-        cat {{ grub_config_file }}
+        --config-file={{ grub_options_config_file }} &&
+        cat {{ grub_options_system_config_file }}
       args:
         warn: no
       register: grub_options_add_result
       changed_when: >-
-        grub_options_read_config_file_result.stdout
-        != grub_options_add_result.stdout
-      when: >-
-        grub_options_read_config_file_result.stdout_lines
-        | select("search", grup_config_options_prefix + " .*")
-        | select("search", "^((?!" + grub_options_item + ").)*$")
-        | list
-        | length > 0
-      loop: "{{ grub_options_present }}"
-      loop_control:
-        loop_var: grub_options_item
+        grub_options_read_system_config_file_result.stdout | trim
+        != grub_options_add_result.stdout | trim
+      notify: generate grub2 config
 
     - name: Remove grub options
       shell: >-
         /sbin/grubby
-        --remove-args="{{ grub_options_item }}"
+        --remove-args="{{ grub_options_absent | join(' ') }}"
         --update-kernel=ALL
-        --config-file={{ grub_config_file }} &&
-        cat {{ grub_config_file }}
+        --config-file={{ grub_options_config_file }} &&
+        cat {{ grub_options_system_config_file }}
       args:
         warn: no
       changed_when: >-
-        grub_options_read_config_file_result.stdout
-        != grub_options_remove_result.stdout
+        grub_options_read_system_config_file_result.stdout | trim
+        != grub_options_remove_result.stdout | trim
       register: grub_options_remove_result
-      when: >-
-        grub_options_read_config_file_result.stdout_lines
-        | select("search", grup_config_options_prefix + " .*")
-        | select("search", grub_options_item)
-        | list
-        | length > 0
-      loop: "{{ grub_options_absent }}"
-      loop_control:
-        loop_var: grub_options_item
+      notify: generate grub2 config
 
-    - name: Save old version of grub config file
-      copy:
-        dest: "{{ grub_config_file + '.' + '%Y%m%d%H%M%S' | strftime }}"
-        content: "{{ grub_options_read_config_file_result.stdout }}"
-      when: >-
-        grub_options_add_result is changed
-        or grub_options_remove_result is changed
-  vars:
-    grub_config_file: >-
-      {{ (ansible_facts.distribution | lower in ["centos", "redhat"]
-          and ansible_facts.distribution_major_version is version("6", "<="))
-         | ternary(grub_options_config_file_v1, grub_options_config_file_v2) }}
-
-    grup_config_options_prefix: >-
-      {{ (grub_config_file == grub_options_config_file_v1)
-         | ternary("kernel", "linux") }}
   tags:
     - role::grup_options
