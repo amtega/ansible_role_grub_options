@@ -5,7 +5,7 @@
     - name: Check EFI boot
       stat:
         path: /sys/firmware/efi
-      register: grub_options_check_efi
+      register: grub_options_check_efi_result
 
     - name: Read grub system config file
       command: cat {{ grub_options_system_config_file }}
