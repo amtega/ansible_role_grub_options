@@ -9,7 +9,7 @@ grub_options_config_file_efi: >-
   /boot/efi/EFI/{{ ansible_facts.distribution | lower }}/grub.cfg
 
 grub_options_config_file: >-
-  {{ (grub_options_check_efi.stat.exists)
+  {{ (grub_options_check_efi_result.stat.exists)
      | ternary(grub_options_config_file_efi,
                grub_options_config_file_bios) }}
 
