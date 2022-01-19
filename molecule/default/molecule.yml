@@ -30,25 +30,25 @@ platforms:
       - molecule_hosts
       - molecule_hosts_centos
       - molecule_hosts_centos_8
-  - name: "fedora33-${INSTANCE_UUID:-1}"
+  - name: "fedora34-${INSTANCE_UUID:-1}"
     box: fedora/33-cloud-base
     memory: 1024
     groups:
       - molecule_hosts
       - molecule_hosts_fedora
-      - molecule_hosts_fedora_33
-  - name: "fedora34-${INSTANCE_UUID:-1}"
+      - molecule_hosts_fedora_34
+  - name: "fedora35-${INSTANCE_UUID:-1}"
     box: fedora/34-cloud-base
     memory: 1024
     groups:
       - molecule_hosts
       - molecule_hosts_fedora
-      - molecule_hosts_fedora_34
+      - molecule_hosts_fedora_35
 provisioner:
   name: ansible
   config_options:
     defaults:
-      callback_enabled: profile_tasks
+      callbacks_enabled: profile_tasks
       action_plugins: $PWD/action_plugins
   inventory:
     hosts:
