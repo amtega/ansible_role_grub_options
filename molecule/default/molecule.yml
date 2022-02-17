@@ -22,7 +22,7 @@ platforms:
       - molecule_hosts_centos
       - molecule_hosts_centos_7
   - name: "centos8-${INSTANCE_UUID:-1}"
-    box: centos/8
+    box: centos/stream8
     instance_raw_config_args:
       - vm.box_download_insecure = true
     memory: 1024
@@ -31,14 +31,14 @@ platforms:
       - molecule_hosts_centos
       - molecule_hosts_centos_8
   - name: "fedora34-${INSTANCE_UUID:-1}"
-    box: fedora/33-cloud-base
+    box: fedora/34-cloud-base
     memory: 1024
     groups:
       - molecule_hosts
       - molecule_hosts_fedora
       - molecule_hosts_fedora_34
   - name: "fedora35-${INSTANCE_UUID:-1}"
-    box: fedora/34-cloud-base
+    box: fedora/35-cloud-base
     memory: 1024
     groups:
       - molecule_hosts
