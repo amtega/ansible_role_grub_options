@@ -33,30 +33,11 @@ dependencies:
   - role: amtega.packages
     vars:
       packages_os:
-        centos:
-          7:
-            "grub2": present
-            "grub2-tools": present
-            "grubby": present
-          8:
-            "grub2": present
-            "grub2-tools": present
-            "grubby": present
-        fedora:
+        all:
           all:
             "grub2": present
             "grub2-tools": present
             "grubby": present
-        redhat:
-          7:
-            "grub2": present
-            "grub2-tools": present
-            "grubby": present
-          8:
-            "grub2": present
-            "grub2-tools": present
-            "grubby": present
-
       packages_python:
         all:
           all:
