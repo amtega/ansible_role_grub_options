@@ -6,6 +6,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.0] - 2022-06-27
+### Added
+- Securized config files with mode 0600.
+
+### Fixed
+- Coding standards.
+
 ## [1.4.3] - 2022-02-22
 ### Fixed
 - Adapted for CentOS derived distros. Related to ansible/main#263
