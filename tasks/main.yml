@@ -1,34 +1,37 @@
 ---
 # Role tasks
 
-- block:
+- name: Setup grub options
+  block:
     - name: Check EFI boot
-      stat:
+      ansible.builtin.stat:
         path: /sys/firmware/efi
       register: grub_options_check_efi_result
 
     - name: Read grub system config file
-      command: cat {{ grub_options_system_config_file }}
+      ansible.builtin.command: cat {{ grub_options_system_config_file }}
       changed_when: no
       register: grub_options_read_system_config_file_result
 
     - name: Check if password is already configured
-      command: "cat {{ grub_options_password_config_file }}"
+      ansible.builtin.command: "cat {{ grub_options_password_config_file }}"
       changed_when: no
       register: grub_options_check_password_result
 
-    - block:
+    - name: Setup grub password
+      block:
         - name: Generate password
-          expect:
+          ansible.builtin.expect:
             command: "grub2-mkpasswd-pbkdf2"
             responses:
               ":": "{{ grup_options_password }}"
           register: grub2_password_generate_result
 
         - name: Setup config file for password
-          template:
+          ansible.builtin.template:
             src: users.j2
             dest: "{{ grub_options_password_config_file }}"
+            mode: 0600
           notify: generate grub2 config
           vars:
             grub_options_password: >-
@@ -38,8 +41,13 @@
         is not search("grub.pbkdf2.sha512")
         or grub_options_set_password_force | bool
 
+    - name: Securize grub config file
+      ansible.builtin.file:
+        path: "{{ grub_options_config_file  }}"
+        mode: 0600
+
     - name: Add grub options
-      shell: >-
+      ansible.builtin.shell: >-
         /sbin/grubby
         --args="{{ grub_options_present | join(' ') }}"
         --update-kernel=ALL
@@ -55,7 +63,7 @@
       notify: generate grub2 config
 
     - name: Remove grub options
-      shell: >-
+      ansible.builtin.shell: >-
         /sbin/grubby
         --remove-args="{{ grub_options_absent | join(' ') }}"
         --update-kernel=ALL
