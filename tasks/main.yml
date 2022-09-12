@@ -1,5 +1,4 @@
 ---
-# Role tasks
 
 - name: Setup grub options
   block:
@@ -43,7 +42,7 @@
 
     - name: Securize grub config file
       ansible.builtin.file:
-        path: "{{ grub_options_config_file  }}"
+        path: "{{ grub_options_config_file }}"
         mode: 0600
 
     - name: Add grub options
